@@ -4,7 +4,7 @@ mod planets;
 use planets::*;
 use constants::*;
 use bevy::prelude::*;
-use rand::Rng;
+use rand::{random, Rng};
 use bevy::window::PrimaryWindow;
 use bevy::core_pipeline::bloom::{BloomCompositeMode, BloomPrefilterSettings, BloomSettings};
 use bevy::input::mouse::MouseWheel;
@@ -14,11 +14,14 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)))
+        // .add_systems(Startup, setup)
         .add_systems(Startup, spawn_camera)
         .add_systems(Startup, spawn_buttons)
         .add_systems(Startup, spawn_planets)
+        .add_systems(Startup, spawn_comets)
         .add_systems(Startup, spawn_black_hole)
         .add_systems(Update, zoom_scale)
+        .add_systems(Update, comet_movement)
         .add_systems(Update, camera_movement)
         .run();
 }
@@ -28,6 +31,11 @@ pub struct Planet {}
 
 #[derive(Component)]
 pub struct BlackHole {}
+
+#[derive(Component)]
+pub struct Comet {
+    direction: Vec2,
+}
 
 pub fn spawn_black_hole(
     mut commands: Commands,
@@ -155,3 +163,44 @@ fn camera_movement(
         transform.translation.x += speed;
     }
 }
+
+pub fn spawn_comets(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+) {
+    let window = window_query.get_single().unwrap();
+
+    for _ in 0..3 {
+        let random_x = random::<f32>() * window.width();
+        let random_y = random::<f32>() * window.height();
+
+        commands.spawn((
+            SpriteBundle {
+                transform: Transform::from_xyz(random_x, random_y, 0.0),
+                texture: asset_server.load("sprites/fireball.png"),
+                ..default()
+            },
+            Comet {
+                direction: Vec2::new(random::<f32>(), random::<f32>()),
+            }
+        ));
+    }
+}
+
+pub fn comet_movement(
+    mut comet_query: Query<(&mut Transform, &Comet)>,
+    time: Res<Time>,
+) {
+    for (mut transform, comet) in comet_query.iter_mut() {
+        let direction = Vec3::new(comet.direction.x, comet.direction.y, 0.0);
+        transform.translation += direction * COMET_SPEED * time.delta_seconds();
+    }
+}
+
+// fn setup(asset_server: Res<AssetServer>, mut commands: Commands) {
+//     commands.spawn(AudioBundle {
+//         source: asset_server.load("audio/sound.mp3"),
+//         ..default()
+//     });
+// }
