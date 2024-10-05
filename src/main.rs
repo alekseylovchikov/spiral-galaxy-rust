@@ -9,13 +9,13 @@ use bevy::prelude::EventReader;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
-        .add_startup_system(spawn_camera)
-        .add_system(zoom_scale)
-        .add_system(camera_movement)
-        .add_startup_system(spawn_buttons)
-        .add_startup_system(spawn_planets)
-        .add_startup_system(spawn_black_hole)
+        .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)))
+        .add_systems(Startup, spawn_camera)
+        .add_systems(Startup, spawn_buttons)
+        .add_systems(Startup, spawn_planets)
+        .add_systems(Startup, spawn_black_hole)
+        .add_systems(Update, zoom_scale)
+        .add_systems(Update, camera_movement)
         .run();
 }
 
@@ -149,7 +149,7 @@ fn zoom_scale(
 ) {
     let mut projection = query_camera.single_mut();
 
-    for ev in evr_scroll.iter() {
+    for ev in evr_scroll.read() {
         if ev.y > 0.0 {
             projection.scale *= 1.25;
         } else {
@@ -201,22 +201,22 @@ fn spawn_buttons(
 
 fn camera_movement(
     time: Res<Time>,
-    keyboard_input: Res<Input<KeyCode>>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
     mut query: Query<&mut Transform, With<Camera>>,
 ) {
     let mut transform = query.single_mut();
     let speed = 500.0 * time.delta_seconds();
 
-    if keyboard_input.pressed(KeyCode::W) {
+    if keyboard_input.pressed(KeyCode::KeyW) {
         transform.translation.y += speed;
     }
-    if keyboard_input.pressed(KeyCode::S) {
+    if keyboard_input.pressed(KeyCode::KeyS) {
         transform.translation.y -= speed;
     }
-    if keyboard_input.pressed(KeyCode::A) {
+    if keyboard_input.pressed(KeyCode::KeyA) {
         transform.translation.x -= speed;
     }
-    if keyboard_input.pressed(KeyCode::D) {
+    if keyboard_input.pressed(KeyCode::KeyD) {
         transform.translation.x += speed;
     }
 }
