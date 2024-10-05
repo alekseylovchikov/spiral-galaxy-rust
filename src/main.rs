@@ -14,7 +14,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)))
-        .add_systems(Startup, setup)
+        .add_systems(Startup, setup_audio)
         .add_systems(Startup, spawn_camera)
         .add_systems(Startup, spawn_buttons)
         .add_systems(Startup, spawn_planets)
@@ -198,7 +198,7 @@ pub fn comet_movement(
     }
 }
 
-fn setup(asset_server: Res<AssetServer>, mut commands: Commands) {
+fn setup_audio(asset_server: Res<AssetServer>, mut commands: Commands) {
     commands.spawn(AudioBundle {
         source: asset_server.load("audio/sound.ogg"),
         ..default()
