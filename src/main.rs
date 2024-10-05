@@ -38,7 +38,7 @@ pub fn spawn_planets(
     let mut rng = rand::thread_rng();
     let arm_count = 5;
     let arm_offset = 2.0 * PI / arm_count as f32;
-    let planet_count: usize = 1000;
+    let planet_count: usize = 10000;
     let offset: usize = 100;
 
     let mut planets_positions = Vec::new();
@@ -68,8 +68,9 @@ pub fn spawn_planets(
 
         if valid_position {
             planets_positions.push((x, y));
-            let planet_size: f32 = rng.gen_range(0.2..0.6);
+            let planet_size: f32 = rng.gen_range(0.2..5.9);
             let random_planet_index: u8 = rng.gen_range(1..5);
+            // let random_planet_path = format!("sprites/planet_{random_planet_index}.png");
             let planet_asset_path = match random_planet_index {
                 1 => "sprites/Baren.png",
                 2 => "sprites/Ice.png",
@@ -83,6 +84,10 @@ pub fn spawn_planets(
                     transform: Transform {
                         translation: Vec3::new(window.width() / 2.0 + x, window.height() / 2.0 + y, 0.0),
                         scale: Vec3::splat(planet_size),
+                        ..default()
+                    },
+                    sprite: Sprite {
+                        custom_size: Some(Vec2::splat(planet_size)),
                         ..default()
                     },
                     texture: asset_server.load(planet_asset_path),
@@ -137,7 +142,7 @@ pub fn spawn_camera(
                 threshold: 0.0,
                 threshold_softness: 0.0,
             },
-            composite_mode: BloomCompositeMode::EnergyConserving,
+            composite_mode: BloomCompositeMode::Additive,
             ..default()
         }
     ));
@@ -207,16 +212,16 @@ fn camera_movement(
     let mut transform = query.single_mut();
     let speed = 500.0 * time.delta_seconds();
 
-    if keyboard_input.pressed(KeyCode::KeyW) {
+    if keyboard_input.pressed(KeyCode::KeyW) || keyboard_input.pressed(KeyCode::ArrowUp) {
         transform.translation.y += speed;
     }
-    if keyboard_input.pressed(KeyCode::KeyS) {
+    if keyboard_input.pressed(KeyCode::KeyS) || keyboard_input.pressed(KeyCode::ArrowDown) {
         transform.translation.y -= speed;
     }
-    if keyboard_input.pressed(KeyCode::KeyA) {
+    if keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft) {
         transform.translation.x -= speed;
     }
-    if keyboard_input.pressed(KeyCode::KeyD) {
+    if keyboard_input.pressed(KeyCode::KeyD) || keyboard_input.pressed(KeyCode::ArrowRight) {
         transform.translation.x += speed;
     }
 }
