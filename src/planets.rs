@@ -4,19 +4,20 @@ use bevy::math::{Vec2, Vec3};
 use bevy::prelude::{default, Commands, Query, Res, Sprite, SpriteBundle, Transform, Window, With};
 use bevy::window::PrimaryWindow;
 use rand::Rng;
-use crate::Planet;
+use crate::{Planet, PlanetsCount};
 
 pub fn spawn_planets(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
+    planets_res: Res<PlanetsCount>,
 ) {
     let window = window_query.get_single().unwrap();
 
     let mut rng = rand::thread_rng();
     let arm_count = 5;
     let arm_offset = 2.0 * PI / arm_count as f32;
-    let planet_count: usize = 10000;
+    let planet_count: usize = planets_res.value;
     let offset: usize = 100;
 
     let mut planets_positions = Vec::new();

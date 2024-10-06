@@ -4,7 +4,7 @@ mod planets;
 use planets::*;
 use constants::*;
 use bevy::prelude::*;
-use rand::{random, Rng};
+use rand::random;
 use bevy::window::PrimaryWindow;
 use bevy::core_pipeline::bloom::{BloomCompositeMode, BloomPrefilterSettings, BloomSettings};
 use bevy::input::mouse::MouseWheel;
@@ -13,6 +13,7 @@ use bevy::prelude::EventReader;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .init_resource::<PlanetsCount>()
         .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)))
         .add_systems(Startup, setup_audio)
         .add_systems(Startup, spawn_camera)
@@ -35,6 +36,17 @@ pub struct BlackHole {}
 #[derive(Component)]
 pub struct Comet {
     direction: Vec2,
+}
+
+#[derive(Resource)]
+pub struct PlanetsCount {
+    pub value: usize,
+}
+
+impl Default for PlanetsCount {
+    fn default() -> PlanetsCount {
+        PlanetsCount { value: 1000 }
+    }
 }
 
 pub fn spawn_black_hole(
