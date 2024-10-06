@@ -9,21 +9,29 @@ use bevy::window::PrimaryWindow;
 use bevy::core_pipeline::bloom::{BloomCompositeMode, BloomPrefilterSettings, BloomSettings};
 use bevy::input::mouse::MouseWheel;
 use bevy::prelude::EventReader;
+use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, DiagnosticsStore, LogDiagnosticsPlugin};
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins((
+            DefaultPlugins,
+            FrameTimeDiagnosticsPlugin,
+            LogDiagnosticsPlugin::default()),
+        )
         .init_resource::<PlanetsCount>()
         .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)))
         .add_systems(Startup, setup_audio)
         .add_systems(Startup, spawn_camera)
-        .add_systems(Startup, spawn_buttons)
+        .add_systems(Startup, setup_ui)
         .add_systems(Startup, spawn_planets)
         .add_systems(Startup, spawn_comets)
         .add_systems(Startup, spawn_black_hole)
         .add_systems(Update, zoom_scale)
         .add_systems(Update, comet_movement)
         .add_systems(Update, camera_movement)
+        .add_systems(Update, button_system)
+        .add_systems(Update, update_planets)
+        .add_systems(Update, update_counts_ui)
         .run();
 }
 
@@ -48,6 +56,9 @@ impl Default for PlanetsCount {
         PlanetsCount { value: 1000 }
     }
 }
+
+#[derive(Component)]
+struct StarFpsText;
 
 pub fn spawn_black_hole(
     mut commands: Commands,
@@ -114,7 +125,7 @@ fn zoom_scale(
     }
 }
 
-fn spawn_buttons(
+fn setup_ui(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
@@ -126,32 +137,66 @@ fn spawn_buttons(
         background_color: Color::WHITE.into(),
         ..default()
     }).with_children(|parent| {
-        parent.spawn(TextBundle {
-            text: Text::from_section(
-                "+1000",
-                TextStyle {
-                    font: asset_server.load(FONT_PATH),
-                    font_size: 30.0,
-                    color: Color::BLACK,
-                    ..default()
-                },
-            ),
+        parent.spawn(ButtonBundle {
             ..default()
+        }).with_children(|button| {
+            button.spawn(TextBundle {
+                text: Text::from_section(
+                    "+1000",
+                    TextStyle {
+                        font: asset_server.load(FONT_PATH),
+                        font_size: 30.0,
+                        color: Color::BLACK,
+                        ..default()
+                    },
+                ),
+                ..default()
+            });
         });
 
-        parent.spawn(TextBundle {
-            text: Text::from_section(
-                "+10000",
-                TextStyle {
-                    font: asset_server.load(FONT_PATH),
-                    font_size: 30.0,
-                    color: Color::BLACK,
-                    ..default()
-                },
-            ),
+        parent.spawn(ButtonBundle {
             ..default()
+        }).with_children(|button| {
+            button.spawn(TextBundle {
+                text: Text::from_section(
+                    "+10000",
+                    TextStyle {
+                        font: asset_server.load(FONT_PATH),
+                        font_size: 30.0,
+                        color: Color::BLACK,
+                        ..default()
+                    },
+                ),
+                ..default()
+            });
         });
     });
+
+    commands.spawn(NodeBundle {
+        style: Style {
+            position_type: PositionType::Absolute,
+            bottom: Val::Px(5.0),
+            left: Val::Px(5.0),
+            ..Default::default()
+        },
+        ..Default::default()
+    })
+        .with_children(|parent| {
+            parent.spawn((
+                TextBundle {
+                    text: Text::from_section(
+                        "Planets: 1000 | FPS: 0.00",
+                        TextStyle {
+                            font: asset_server.load(FONT_PATH),
+                            font_size: 20.0,
+                            color: Color::WHITE,
+                        },
+                    ),
+                    ..Default::default()
+                },
+                StarFpsText,
+            ));
+        });
 }
 
 fn camera_movement(
@@ -215,4 +260,53 @@ fn setup_audio(asset_server: Res<AssetServer>, mut commands: Commands) {
         source: asset_server.load("audio/sound.ogg"),
         ..default()
     });
+}
+
+fn button_system(
+    mut interaction_query: Query<(&Interaction, &Children), (Changed<Interaction>, With<Button>)>,
+    mut text_query: Query<&mut Text>,
+    mut planets_res: ResMut<PlanetsCount>,
+) {
+    for (interaction, children) in &mut interaction_query {
+        if *interaction == Interaction::Pressed {
+            for &child in children.iter() {
+                if let Ok(text) = text_query.get_mut(child) {
+                    if text.sections[0].value == "+1000" {
+                        planets_res.value += 1000;
+                    } else if text.sections[0].value == "+10000" {
+                        planets_res.value += 10000;
+                    }
+                }
+            }
+        }
+    }
+}
+
+pub fn update_planets(
+    commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+    planets_res: Res<PlanetsCount>,
+) {
+    if planets_res.is_changed() && planets_res.value > 1000 {
+        spawn_planets(commands, window_query, asset_server, planets_res);
+    }
+}
+
+fn update_counts_ui(
+    diagnostics: Res<DiagnosticsStore>,
+    mut query: Query<&mut Text, With<StarFpsText>>,
+    planets_count: Res<PlanetsCount>,
+) {
+    let mut fps_text = "FPS: N/A".to_string();
+
+    if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
+        if let Some(fps_value) = fps.average() {
+            fps_text = format!("FPS: {:.2}", fps_value);
+        }
+    }
+
+    for mut text in query.iter_mut() {
+        text.sections[0].value = format!("Planets: {} | {}", planets_count.value, fps_text);
+    }
 }
