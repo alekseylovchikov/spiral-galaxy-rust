@@ -10,6 +10,7 @@ use bevy::core_pipeline::bloom::{BloomCompositeMode, BloomPrefilterSettings, Blo
 use bevy::input::mouse::MouseWheel;
 use bevy::prelude::EventReader;
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, DiagnosticsStore, LogDiagnosticsPlugin};
+use bevy::app::AppExit;
 
 fn main() {
     App::new()
@@ -32,6 +33,7 @@ fn main() {
         .add_systems(Update, button_system)
         .add_systems(Update, update_planets)
         .add_systems(Update, update_counts_ui)
+        .add_systems(Update, exit_app)
         .run();
 }
 
@@ -52,7 +54,7 @@ pub struct PlanetsCount {
 }
 
 impl Default for PlanetsCount {
-    fn default() -> PlanetsCount {
+    fn default() -> Self {
         PlanetsCount { value: 1000 }
     }
 }
@@ -70,6 +72,10 @@ pub fn spawn_black_hole(
     commands.spawn(
         (
             SpriteBundle {
+                sprite: Sprite {
+                    custom_size: Some(Vec2::new(100.0, 100.0)),
+                    ..default()
+                },
                 transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
                 texture: asset_server.load("sprites/Black_hole.png"),
                 ..default()
@@ -308,5 +314,14 @@ fn update_counts_ui(
 
     for mut text in query.iter_mut() {
         text.sections[0].value = format!("Planets: {} | {}", planets_count.value, fps_text);
+    }
+}
+
+pub fn exit_app(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut app_exit_event_writer: EventWriter<AppExit>,
+) {
+    if keyboard_input.pressed(KeyCode::Escape) {
+        app_exit_event_writer.send(AppExit::Success);
     }
 }
