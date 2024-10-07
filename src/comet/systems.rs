@@ -1,6 +1,8 @@
+use std::time::Duration;
 use bevy::asset::AssetServer;
 use bevy::math::{Vec2, Vec3};
 use bevy::prelude::*;
+use bevy::sprite::MaterialMesh2dBundle;
 use bevy::window::PrimaryWindow;
 use rand::random;
 
@@ -66,6 +68,8 @@ pub fn click_to_explode(
     mouse_button_input: Res<ButtonInput<MouseButton>>,
     query_comets: Query<(Entity, &Transform), With<Comet>>,
     mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     let (camera, camera_transform) = query_camera.single();
 
@@ -77,9 +81,50 @@ pub fn click_to_explode(
                 let distance = world_cursor_pos.distance(comet_pos);
 
                 if distance < 50.0 {
+                    spawn_explosion(&mut commands, comet_pos, &mut meshes, &mut materials);
                     commands.entity(entity).despawn();
                 }
             }
+        }
+    }
+}
+
+fn spawn_explosion(
+    commands: &mut Commands,
+    position: Vec2,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<ColorMaterial>>,
+) {
+    let circle_mesh = meshes.add(Mesh::from(Circle::new(0.5)));
+
+    let material = materials.add(ColorMaterial::from(Color::srgb(1.0, 0.7, 0.0)));
+
+    commands.spawn((
+        MaterialMesh2dBundle {
+            mesh: circle_mesh.into(),
+            material,
+            transform: Transform {
+                translation: Vec3::new(position.x, position.y, 0.0),
+                scale: Vec3::new(75.0, 75.0, 1.0),
+                ..default()
+            },
+            ..default()
+        },
+        Explosion {
+            timer: Timer::new(Duration::from_millis(100), TimerMode::Once),
+        }
+    ));
+}
+
+pub fn explosion_cleanup(
+    time: Res<Time>,
+    mut commands: Commands,
+    mut query: Query<(Entity, &mut Explosion)>,
+) {
+    for (entity, mut explosion) in query.iter_mut() {
+        explosion.timer.tick(time.delta());
+        if explosion.timer.finished() {
+            commands.entity(entity).despawn();
         }
     }
 }

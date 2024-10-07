@@ -42,4 +42,3 @@ fn main() {
         .add_systems(Update, exit_app)
         .run();
 }
-
