@@ -3,11 +3,9 @@ use bevy::app::AppExit;
 use bevy::asset::AssetServer;
 use bevy::audio::AudioBundle;
 use bevy::color::Color;
-use bevy::core_pipeline::bloom::{BloomCompositeMode, BloomPrefilterSettings, BloomSettings};
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::hierarchy::Children;
 use bevy::input::ButtonInput;
-use bevy::input::mouse::MouseWheel;
 use bevy::math::Vec2;
 use bevy::window::PrimaryWindow;
 
