@@ -1,12 +1,12 @@
 use bevy::prelude::Resource;
 
 #[derive(Resource)]
-pub struct PlanetsCount {
+pub struct StarsCount {
     pub value: usize,
 }
 
-impl Default for PlanetsCount {
+impl Default for StarsCount {
     fn default() -> Self {
-        PlanetsCount { value: 1000 }
+        StarsCount { value: 1000 }
     }
 }

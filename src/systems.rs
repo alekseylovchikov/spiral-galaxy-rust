@@ -17,27 +17,27 @@ use crate::resources::*;
 use crate::components::*;
 use crate::constants::*;
 
-pub fn spawn_planets(
+pub fn spawn_stars(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
-    planets_res: Res<PlanetsCount>,
+    stars_res: Res<StarsCount>,
 ) {
     let window = window_query.get_single().unwrap();
 
     let mut rng = rand::thread_rng();
     let arm_count = 5;
     let arm_offset = 2.0 * PI / arm_count as f32;
-    let planet_count: usize = planets_res.value;
+    let stars_count: usize = stars_res.value;
     let offset: usize = 100;
 
-    let mut planets_positions = Vec::new();
+    let mut stars_positions = Vec::new();
 
-    for i in 0..planet_count {
+    for i in 0..stars_count {
         let arm = (i + offset) % arm_count;
         let arm_angle = arm as f32 * arm_offset;
 
-        let t = (i as f32 / planet_count as f32).sqrt();
+        let t = (i as f32 / stars_count as f32).sqrt();
         let theta = t * 10.0 * PI;
         let radius = 40.0 + 100.0 * t + i as f32;
 
@@ -48,7 +48,7 @@ pub fn spawn_planets(
         let y = (radius + radius_noise) * (arm_angle + theta + angle_noise).sin();
 
         let mut valid_position = true;
-        for &(existing_x , existing_y) in &planets_positions {
+        for &(existing_x , existing_y) in &stars_positions {
             let distance = ((x as f32 - existing_x as f32).powi(2) + (y as f32 - existing_y as f32).powi(2)).sqrt();
             if distance < 5.0 {
                 valid_position = false;
@@ -57,11 +57,10 @@ pub fn spawn_planets(
         }
 
         if valid_position {
-            planets_positions.push((x, y));
-            let planet_size: f32 = rng.gen_range(0.2..5.9);
-            let random_planet_index: u8 = rng.gen_range(1..5);
-            // let random_planet_path = format!("sprites/planet_{random_planet_index}.png");
-            let planet_asset_path = match random_planet_index {
+            stars_positions.push((x, y));
+            let star_size: f32 = rng.gen_range(0.2..5.9);
+            let random_star_index: u8 = rng.gen_range(1..5);
+            let planet_asset_path = match random_star_index {
                 1 => "sprites/Baren.png",
                 2 => "sprites/Ice.png",
                 3 => "sprites/Lava.png",
@@ -73,17 +72,17 @@ pub fn spawn_planets(
                 SpriteBundle {
                     transform: Transform {
                         translation: Vec3::new(window.width() / 2.0 + x, window.height() / 2.0 + y, 0.0),
-                        scale: Vec3::splat(planet_size),
+                        scale: Vec3::splat(star_size),
                         ..default()
                     },
                     sprite: Sprite {
-                        custom_size: Some(Vec2::splat(planet_size)),
+                        custom_size: Some(Vec2::splat(star_size)),
                         ..default()
                     },
                     texture: asset_server.load(planet_asset_path),
                     ..default()
                 },
-                Planet {},
+                Star {},
             ));
         }
     }
@@ -218,7 +217,7 @@ pub fn setup_ui(
             parent.spawn((
                 TextBundle {
                     text: Text::from_section(
-                        "Planets: 1000 | FPS: 0.00",
+                        "Stars: 1000 | FPS: 0.00",
                         TextStyle {
                             font: asset_server.load(FONT_PATH),
                             font_size: 20.0,
@@ -298,16 +297,16 @@ pub fn setup_audio(asset_server: Res<AssetServer>, mut commands: Commands) {
 pub fn button_system(
     mut interaction_query: Query<(&Interaction, &Children), (Changed<Interaction>, With<Button>)>,
     mut text_query: Query<&mut Text>,
-    mut planets_res: ResMut<PlanetsCount>,
+    mut stars_res: ResMut<StarsCount>,
 ) {
     for (interaction, children) in &mut interaction_query {
         if *interaction == Interaction::Pressed {
             for &child in children.iter() {
                 if let Ok(text) = text_query.get_mut(child) {
                     if text.sections[0].value == "+1000" {
-                        planets_res.value += 1000;
+                        stars_res.value += 1000;
                     } else if text.sections[0].value == "+10000" {
-                        planets_res.value += 10000;
+                        stars_res.value += 10000;
                     }
                 }
             }
@@ -319,17 +318,17 @@ pub fn update_planets(
     commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
-    planets_res: Res<PlanetsCount>,
+    stars_res: Res<StarsCount>,
 ) {
-    if planets_res.is_changed() && planets_res.value > 1000 {
-        spawn_planets(commands, window_query, asset_server, planets_res);
+    if stars_res.is_changed() && stars_res.value > 1000 {
+        spawn_stars(commands, window_query, asset_server, stars_res);
     }
 }
 
 pub fn update_counts_ui(
     diagnostics: Res<DiagnosticsStore>,
     mut query: Query<&mut Text, With<StarFpsText>>,
-    planets_count: Res<PlanetsCount>,
+    stars_count: Res<StarsCount>,
 ) {
     let mut fps_text = "FPS: N/A".to_string();
 
@@ -340,7 +339,7 @@ pub fn update_counts_ui(
     }
 
     for mut text in query.iter_mut() {
-        text.sections[0].value = format!("Planets: {} | {}", planets_count.value, fps_text);
+        text.sections[0].value = format!("Stars: {} | {}", stars_count.value, fps_text);
     }
 }
 

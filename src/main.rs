@@ -16,12 +16,12 @@ fn main() {
             FrameTimeDiagnosticsPlugin,
             LogDiagnosticsPlugin::default()),
         )
-        .init_resource::<PlanetsCount>()
+        .init_resource::<StarsCount>()
         .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)))
         .add_systems(Startup, setup_audio)
         .add_systems(Startup, spawn_camera)
         .add_systems(Startup, setup_ui)
-        .add_systems(Startup, spawn_planets)
+        .add_systems(Startup, spawn_stars)
         .add_systems(Startup, spawn_comets)
         .add_systems(Startup, spawn_black_hole)
         .add_systems(Update, zoom_scale)
