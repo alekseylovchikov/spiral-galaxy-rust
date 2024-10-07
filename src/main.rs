@@ -16,11 +16,19 @@ use ui::*;
 use bevy::prelude::*;
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 
-
 fn main() {
-    App::new()
+    let mut app = App::default();
+
+    app
         .add_plugins((
-            DefaultPlugins,
+             DefaultPlugins
+                 .set(WindowPlugin {
+                     primary_window: Some(Window {
+                         title: "Galaxy Application".to_string(),
+                         ..default()
+                     }),
+                     ..default()
+                 }),
             FrameTimeDiagnosticsPlugin,
             LogDiagnosticsPlugin::default()),
         )
@@ -34,3 +42,4 @@ fn main() {
         .add_systems(Update, exit_app)
         .run();
 }
+
