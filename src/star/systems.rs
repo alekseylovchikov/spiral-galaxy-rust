@@ -5,8 +5,8 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use rand::Rng;
 
-use crate::star::components::*;
-use crate::star::resources::*;
+use super::components::*;
+use super::resources::*;
 
 pub fn update_stars(
     commands: Commands,

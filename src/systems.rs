@@ -8,14 +8,14 @@ use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::hierarchy::Children;
 use bevy::input::ButtonInput;
 use bevy::input::mouse::MouseWheel;
-use bevy::math::{Vec2, Vec3};
+use bevy::math::Vec2;
 use bevy::window::PrimaryWindow;
-use rand::*;
 
 use crate::components::*;
 use crate::constants::*;
 use crate::resources::*;
 
+// Black hole
 pub fn spawn_black_hole(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
@@ -39,6 +39,7 @@ pub fn spawn_black_hole(
     );
 }
 
+// Camera
 pub fn spawn_camera(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
@@ -85,6 +86,37 @@ pub fn zoom_scale(
     }
 }
 
+pub fn camera_movement(
+    time: Res<Time>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut query: Query<&mut Transform, With<Camera>>,
+) {
+    let mut transform = query.single_mut();
+    let speed = CAMERA_SPEED * time.delta_seconds();
+
+    if keyboard_input.pressed(KeyCode::KeyW) || keyboard_input.pressed(KeyCode::ArrowUp) {
+        transform.translation.y += speed;
+    }
+    if keyboard_input.pressed(KeyCode::KeyS) || keyboard_input.pressed(KeyCode::ArrowDown) {
+        transform.translation.y -= speed;
+    }
+    if keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft) {
+        transform.translation.x -= speed;
+    }
+    if keyboard_input.pressed(KeyCode::KeyD) || keyboard_input.pressed(KeyCode::ArrowRight) {
+        transform.translation.x += speed;
+    }
+}
+
+// Audio
+pub fn setup_audio(asset_server: Res<AssetServer>, mut commands: Commands) {
+    commands.spawn(AudioBundle {
+        source: asset_server.load("audio/sound.ogg"),
+        ..default()
+    });
+}
+
+// UI
 pub fn setup_ui(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -159,67 +191,22 @@ pub fn setup_ui(
         });
 }
 
-pub fn camera_movement(
-    time: Res<Time>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut query: Query<&mut Transform, With<Camera>>,
+pub fn update_counts_ui(
+    diagnostics: Res<DiagnosticsStore>,
+    mut query: Query<&mut Text, With<StarFpsText>>,
+    stars_count: Res<StarsCount>,
 ) {
-    let mut transform = query.single_mut();
-    let speed = CAMERA_SPEED * time.delta_seconds();
+    let mut fps_text = "FPS: N/A".to_string();
 
-    if keyboard_input.pressed(KeyCode::KeyW) || keyboard_input.pressed(KeyCode::ArrowUp) {
-        transform.translation.y += speed;
+    if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
+        if let Some(fps_value) = fps.average() {
+            fps_text = format!("FPS: {:.2}", fps_value);
+        }
     }
-    if keyboard_input.pressed(KeyCode::KeyS) || keyboard_input.pressed(KeyCode::ArrowDown) {
-        transform.translation.y -= speed;
-    }
-    if keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft) {
-        transform.translation.x -= speed;
-    }
-    if keyboard_input.pressed(KeyCode::KeyD) || keyboard_input.pressed(KeyCode::ArrowRight) {
-        transform.translation.x += speed;
-    }
-}
 
-pub fn spawn_comets(
-    mut commands: Commands,
-    window_query: Query<&Window, With<PrimaryWindow>>,
-    asset_server: Res<AssetServer>,
-) {
-    let window = window_query.get_single().unwrap();
-
-    for _ in 0..3 {
-        let random_x = random::<f32>() * window.width();
-        let random_y = random::<f32>() * window.height();
-
-        commands.spawn((
-            SpriteBundle {
-                transform: Transform::from_xyz(0.0 - random_x, 0.0 - random_y, 0.0),
-                texture: asset_server.load("sprites/fireball.png"),
-                ..default()
-            },
-            Comet {
-                direction: Vec2::new(random::<f32>(), random::<f32>()),
-            }
-        ));
+    for mut text in query.iter_mut() {
+        text.sections[0].value = format!("Stars: {} | {}", stars_count.value, fps_text);
     }
-}
-
-pub fn comet_movement(
-    mut comet_query: Query<(&mut Transform, &Comet)>,
-    time: Res<Time>,
-) {
-    for (mut transform, comet) in comet_query.iter_mut() {
-        let direction = Vec3::new(comet.direction.x, comet.direction.y, 0.0);
-        transform.translation += direction * COMET_SPEED * time.delta_seconds();
-    }
-}
-
-pub fn setup_audio(asset_server: Res<AssetServer>, mut commands: Commands) {
-    commands.spawn(AudioBundle {
-        source: asset_server.load("audio/sound.ogg"),
-        ..default()
-    });
 }
 
 pub fn button_system(
@@ -242,24 +229,7 @@ pub fn button_system(
     }
 }
 
-pub fn update_counts_ui(
-    diagnostics: Res<DiagnosticsStore>,
-    mut query: Query<&mut Text, With<StarFpsText>>,
-    stars_count: Res<StarsCount>,
-) {
-    let mut fps_text = "FPS: N/A".to_string();
-
-    if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
-        if let Some(fps_value) = fps.average() {
-            fps_text = format!("FPS: {:.2}", fps_value);
-        }
-    }
-
-    for mut text in query.iter_mut() {
-        text.sections[0].value = format!("Stars: {} | {}", stars_count.value, fps_text);
-    }
-}
-
+// App
 pub fn exit_app(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut app_exit_event_writer: EventWriter<AppExit>,

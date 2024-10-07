@@ -2,6 +2,7 @@ pub mod constants;
 pub mod components;
 mod systems;
 pub mod star;
+pub mod comet;
 
 use systems::*;
 use star::*;
@@ -21,10 +22,8 @@ fn main() {
         .add_systems(Startup, setup_audio)
         .add_systems(Startup, spawn_camera)
         .add_systems(Startup, setup_ui)
-        .add_systems(Startup, spawn_comets)
         .add_systems(Startup, spawn_black_hole)
         .add_systems(Update, zoom_scale)
-        .add_systems(Update, comet_movement)
         .add_systems(Update, camera_movement)
         .add_systems(Update, button_system)
         .add_systems(Update, update_counts_ui)
