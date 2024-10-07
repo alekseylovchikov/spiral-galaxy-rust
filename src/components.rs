@@ -2,9 +2,6 @@ use bevy::math::Vec2;
 use bevy::prelude::Component;
 
 #[derive(Component)]
-pub struct Star {}
-
-#[derive(Component)]
 pub struct BlackHole {}
 
 #[derive(Component)]
