@@ -32,7 +32,7 @@ fn main() {
             FrameTimeDiagnosticsPlugin,
             LogDiagnosticsPlugin::default()),
         )
-        .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0))) // Background color
+        .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)))
         .add_plugins(CameraPlugin)
         .add_plugins(StarPlugin)
         .add_plugins(CometPlugin)
