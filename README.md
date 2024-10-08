@@ -17,5 +17,5 @@ cd spiral-galaxy-rust
 cargo build
 ```
 ```shell
-cargo serve
+cargo run
 ```
