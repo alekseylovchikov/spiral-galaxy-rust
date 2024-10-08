@@ -60,6 +60,29 @@ pub fn setup_ui(
         style: Style {
             position_type: PositionType::Absolute,
             bottom: Val::Px(5.0),
+            right: Val::Px(5.0),
+            ..Default::default()
+        },
+        ..Default::default()
+    })
+        .with_children(|parent| {
+            parent.spawn(TextBundle {
+                text: Text::from_section(
+                    "Find comets and destroy them (by clicking on them)",
+                    TextStyle {
+                        font: asset_server.load(crate::systems::FONT_PATH),
+                        font_size: 20.0,
+                        color: Color::WHITE,
+                    },
+                ),
+                ..default()
+            });
+        });
+
+    commands.spawn(NodeBundle {
+        style: Style {
+            position_type: PositionType::Absolute,
+            bottom: Val::Px(5.0),
             left: Val::Px(5.0),
             ..Default::default()
         },

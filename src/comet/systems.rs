@@ -24,7 +24,7 @@ pub fn spawn_comets(
         commands.spawn((
             SpriteBundle {
                 transform: Transform::from_xyz(0.0 - random_x, 0.0 - random_y, 0.0),
-                texture: asset_server.load("sprites/fireball.png"),
+                texture: asset_server.load("sprites/comet.png"),
                 ..default()
             },
             Comet {

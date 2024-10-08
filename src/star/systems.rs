@@ -61,14 +61,8 @@ pub fn spawn_stars(
         if valid_position {
             stars_positions.push((x, y));
             let star_size: f32 = rng.gen_range(0.2..5.9);
-            let random_star_index: u8 = rng.gen_range(1..5);
-            let planet_asset_path = match random_star_index {
-                1 => "sprites/Baren.png",
-                2 => "sprites/Ice.png",
-                3 => "sprites/Lava.png",
-                4 => "sprites/Terran.png",
-                _ => "sprites/Terran.png"
-            };
+            let random_star_index: u8 = rng.gen_range(0..4);
+            let planet_asset_path = format!("sprites/star_{}.png", random_star_index);
 
             commands.spawn((
                 SpriteBundle {
